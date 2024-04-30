@@ -23,7 +23,7 @@ def fetch_bitquery_data():
     query = """
     {
       EVM(dataset: archive, network: eth) {
-        DEXTrades(limit: {count: 5}, orderBy: {descending: Block_Time}) {
+        DEXTrades(limit: {count: 10}, orderBy: {descending: Block_Time}) {
           Block {
             Number
             Time
@@ -78,19 +78,28 @@ def fetch_bitquery_data():
 
 # Write data to Google Sheets
 def update_sheet(worksheet, data):
+    headers = [
+        "Block Time", "Transaction Hash","Buy Price", "Buy Amount", "Buy Currency Symbol",
+        "Sell Amount", "Sell Currency Symbol", "Dex Protocol Name"
+    ]
+    # Update the worksheet with headers at the first row
+    worksheet.update( [headers],'A1:H1')  
+
     trades = data['data']['EVM']['DEXTrades']
     for i, trade in enumerate(trades, start=2):  # Assuming headers are in the first row
         values = [
             trade['Block']['Time'],
             trade['Transaction']['Hash'],
+            trade['Trade']['Buy']['Price'],
             trade['Trade']['Buy']['Amount'],
             trade['Trade']['Buy']['Currency']['Symbol'],
+          
             trade['Trade']['Sell']['Amount'],
             trade['Trade']['Sell']['Currency']['Symbol'],
             trade['Trade']['Dex']['ProtocolName']
         ]
         # Update the sheet using named arguments
-        worksheet.update(range_name=f'A{i}:G{i}', values=[values])  
+        worksheet.update( values=[values],range_name=f'A{i}:H{i}')  
 
 
 def main():
